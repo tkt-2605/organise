@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Box, PlusCircle, Package } from 'lucide-react';
+import { Search, Box, PlusCircle, Package, Barcode } from 'lucide-react';
 
 const Home = () => {
     const actions = [
         { to: '/search-name', icon: Search, label: 'Search by Name', color: 'bg-blue-500' },
+        { to: '/search-barcode', icon: Barcode, label: 'Search by Barcode', color: 'bg-indigo-500' },
         { to: '/search-rack', icon: Box, label: 'Search by Rack', color: 'bg-purple-500' },
         { to: '/add-rack', icon: PlusCircle, label: 'Add Rack', color: 'bg-emerald-500' },
         { to: '/add-product', icon: Package, label: 'Add Product', color: 'bg-orange-500' },

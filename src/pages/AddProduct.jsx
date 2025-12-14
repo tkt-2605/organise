@@ -206,6 +206,24 @@ const AddProduct = () => {
                             />
                         </div>
 
+                        <div className="space-y-2">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                Price
+                            </label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={productData.price || ''}
+                                    onChange={(e) => setProductData({ ...productData, price: parseFloat(e.target.value) || 0 })}
+                                    className="input pl-8"
+                                    placeholder="0.00"
+                                />
+                            </div>
+                        </div>
+
                         {error && (
                             <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg">
                                 {error}

@@ -1,28 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Loader2, Scan, Box, Edit, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Loader2, Scan, Barcode, Edit, Trash2 } from 'lucide-react';
 import { api } from '../services/api';
 import Scanner from '../components/Scanner';
 import EditProductModal from '../components/EditProductModal';
-import EditRackModal from '../components/EditRackModal';
 import ConfirmationModal from '../components/ConfirmationModal';
 
-const SearchByRack = () => {
+const SearchByBarcode = () => {
     const [query, setQuery] = useState('');
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
-    const [isEditingRack, setIsEditingRack] = useState(false);
     const [deletingProduct, setDeletingProduct] = useState(null);
-    const [isDeletingRack, setIsDeletingRack] = useState(false);
 
-    const handleSearch = async (rackId) => {
-        if (!rackId) return;
+    const handleSearch = async (barcode) => {
+        if (!barcode) return;
         setLoading(true);
         setHasSearched(true);
         try {
-            const data = await api.getProductsByRack(rackId);
+            const data = await api.getProductsByBarcode(barcode);
             setProducts(data);
         } catch (error) {
             console.error('Error fetching products:', error);
@@ -47,7 +44,7 @@ const SearchByRack = () => {
         setDeletingProduct(product);
     };
 
-    const handleConfirmDeleteProduct = async () => {
+    const handleConfirmDelete = async () => {
         if (!deletingProduct) return;
         try {
             await api.deleteProduct(deletingProduct.id);
@@ -63,48 +60,24 @@ const SearchByRack = () => {
         setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
     };
 
-    const handleDeleteRackClick = () => {
-        if (hasSearched && query) {
-            setIsDeletingRack(true);
-        }
-    };
-
-    const handleConfirmDeleteRack = async () => {
-        try {
-            await api.deleteRack(query);
-            setProducts([]);
-            setHasSearched(false);
-            setQuery('');
-            setIsDeletingRack(false);
-            alert('Rack deleted successfully');
-        } catch (error) {
-            console.error('Error deleting rack:', error);
-            alert('Failed to delete rack');
-        }
-    };
-
-    const handleRackUpdate = (newRackId) => {
-        setQuery(newRackId);
-        handleSearch(newRackId);
-    };
-
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Search by Rack</h2>
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Search by Barcode</h2>
             </div>
 
             {/* Search Controls */}
             <div className="flex gap-2">
                 <div className="relative flex-1">
-                    <Box className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                    <Barcode className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                     <input
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Enter Rack ID..."
+                        placeholder="Enter or Scan Barcode..."
                         className="input pl-12 py-3 text-lg shadow-sm"
+                        autoFocus
                     />
                 </div>
                 <button
@@ -128,28 +101,10 @@ const SearchByRack = () => {
             {/* Results Table */}
             {hasSearched && (
                 <div className="card overflow-hidden animate-fade-in">
-                    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center flex-wrap gap-4">
-                        <div className="flex items-center gap-4">
-                            <h3 className="font-semibold text-slate-700 dark:text-slate-200">
-                                Products in Rack: <span className="text-primary-600 dark:text-primary-400 font-mono text-lg">{query}</span>
-                            </h3>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setIsEditingRack(true)}
-                                    className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                                    title="Rename Rack"
-                                >
-                                    <Edit size={16} />
-                                </button>
-                                <button
-                                    onClick={handleDeleteRackClick}
-                                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="Delete Rack"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-                        </div>
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                        <h3 className="font-semibold text-slate-700 dark:text-slate-200">
+                            Results for Barcode: <span className="text-primary-600 dark:text-primary-400 font-mono">{query}</span>
+                        </h3>
                         <span className="text-sm text-slate-500">{products.length} items found</span>
                     </div>
 
@@ -158,6 +113,7 @@ const SearchByRack = () => {
                             <thead>
                                 <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
                                     <th className="p-4 font-semibold text-slate-600 dark:text-slate-300">Product Name</th>
+                                    <th className="p-4 font-semibold text-slate-600 dark:text-slate-300">Rack ID</th>
                                     <th className="p-4 font-semibold text-slate-600 dark:text-slate-300">Price</th>
                                     <th className="p-4 font-semibold text-slate-600 dark:text-slate-300">Qty</th>
                                     <th className="p-4 font-semibold text-slate-600 dark:text-slate-300 hidden sm:table-cell">Barcode</th>
@@ -169,6 +125,11 @@ const SearchByRack = () => {
                                     products.map((product) => (
                                         <tr key={product.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                             <td className="p-4 font-medium text-slate-800 dark:text-slate-200">{product.product_name}</td>
+                                            <td className="p-4">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-300">
+                                                    {product.rack_id}
+                                                </span>
+                                            </td>
                                             <td className="p-4 text-slate-600 dark:text-slate-400">
                                                 ${typeof product.price === 'number' ? product.price.toFixed(2) : '0.00'}
                                             </td>
@@ -194,14 +155,14 @@ const SearchByRack = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="5" className="p-8 text-center text-slate-500 dark:text-slate-400">
+                                        <td colSpan="6" className="p-8 text-center text-slate-500 dark:text-slate-400">
                                             {loading ? (
                                                 <div className="flex justify-center items-center gap-2">
                                                     <Loader2 className="animate-spin" size={20} />
                                                     Loading...
                                                 </div>
                                             ) : (
-                                                'No products found in this rack'
+                                                'No products matches this barcode'
                                             )}
                                         </td>
                                     </tr>
@@ -219,34 +180,16 @@ const SearchByRack = () => {
                 onUpdate={handleUpdate}
             />
 
-            <EditRackModal
-                isOpen={isEditingRack}
-                onClose={() => setIsEditingRack(false)}
-                currentRackId={query}
-                onUpdate={handleRackUpdate}
-            />
-
-            {/* Delete Product Confirmation */}
             <ConfirmationModal
                 isOpen={!!deletingProduct}
                 onClose={() => setDeletingProduct(null)}
-                onConfirm={handleConfirmDeleteProduct}
+                onConfirm={handleConfirmDelete}
                 title="Delete Product"
                 message={deletingProduct ? `Are you sure you want to delete "${deletingProduct.product_name}"?` : ''}
-                isDangerous={true}
-            />
-
-            {/* Delete Rack Confirmation */}
-            <ConfirmationModal
-                isOpen={isDeletingRack}
-                onClose={() => setIsDeletingRack(false)}
-                onConfirm={handleConfirmDeleteRack}
-                title="Delete Rack"
-                message={`Are you sure you want to delete Rack "${query}" and ALL its products? This cannot be undone.`}
                 isDangerous={true}
             />
         </div>
     );
 };
 
-export default SearchByRack;
+export default SearchByBarcode;
