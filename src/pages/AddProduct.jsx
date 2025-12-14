@@ -77,6 +77,7 @@ const AddProduct = () => {
         try {
             await api.addProduct({
                 ...productData,
+                barcode: productData.barcode.trim() || null,
                 rack_id: rackId,
                 created_at: new Date().toISOString()
             });

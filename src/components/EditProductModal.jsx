@@ -54,7 +54,10 @@ const EditProductModal = ({ isOpen, onClose, product, onUpdate }) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const updatedProduct = await api.updateProduct(product.id, formData);
+            const updatedProduct = await api.updateProduct(product.id, {
+                ...formData,
+                barcode: formData.barcode.trim() || null
+            });
             onUpdate(updatedProduct);
             onClose();
         } catch (error) {
