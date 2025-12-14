@@ -77,6 +77,22 @@ export const api = {
         }
     },
 
+    getRack: async (rackId) => {
+        if (isSupabaseConfigured()) {
+            const { data, error } = await supabase
+                .from('racks')
+                .select('*')
+                .eq('rack_id', rackId)
+                .maybeSingle();
+
+            if (error) throw error;
+            return data;
+        } else {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            return mockRacks.find(r => r.rack_id === rackId);
+        }
+    },
+
     addRack: async (rackId) => {
         if (isSupabaseConfigured()) {
             const { data, error } = await supabase

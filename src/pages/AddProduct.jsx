@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Scan, PlusCircle, CheckCircle, Home, Package, ArrowLeft, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Scan, PlusCircle, CheckCircle, Home, Package, ArrowLeft, ArrowRight, Loader } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { api } from '../services/api';
 import Scanner from '../components/Scanner';
 
@@ -33,11 +33,40 @@ const AddProduct = () => {
         setIsScanning(true);
     };
 
+    const location = useLocation();
+    const [validating, setValidating] = useState(false);
+
+    useEffect(() => {
+        if (location.state?.rackId) {
+            setRackId(location.state.rackId);
+            // Optionally auto-validate if coming from Add Rack page
+            validateRack(location.state.rackId);
+        }
+    }, [location.state]);
+
+    const validateRack = async (id) => {
+        if (!id.trim()) return;
+
+        setValidating(true);
+        setError(null);
+        try {
+            const rack = await api.getRack(id);
+            if (rack) {
+                setStep(2);
+            } else {
+                setError('Rack not found. Please add the rack first.');
+            }
+        } catch (err) {
+            console.error(err);
+            setError('Error validating rack.');
+        } finally {
+            setValidating(false);
+        }
+    };
+
     const handleRackSubmit = (e) => {
         e.preventDefault();
-        if (rackId.trim()) {
-            setStep(2);
-        }
+        validateRack(rackId);
     };
 
     const handleProductSubmit = async (e) => {
@@ -119,11 +148,25 @@ const AddProduct = () => {
 
                         <button
                             type="submit"
-                            disabled={!rackId}
+                            disabled={!rackId || validating}
                             className="w-full btn btn-primary flex items-center justify-center gap-2"
                         >
-                            Next <ArrowRight size={20} />
+                            {validating ? (
+                                <>
+                                    <Loader className="animate-spin" size={20} />
+                                    Validating...
+                                </>
+                            ) : (
+                                <>
+                                    Next <ArrowRight size={20} />
+                                </>
+                            )}
                         </button>
+                        {error && step === 1 && (
+                            <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg animate-fade-in">
+                                {error}
+                            </div>
+                        )}
                     </form>
                 </div>
 
